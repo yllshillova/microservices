@@ -1,0 +1,31 @@
+apiVersion: apps/v1 #Specifies the API version used for the Deployment resource. 
+kind: Deployment #Specifies the type of Kubernetes resource being defined.
+metadata: #Contains metadata about the Deployment, such as its name.
+    name: platforms-depl  #gives the Deployment a unique name within the namespace.
+spec:  #Defines the specification or desired state of the Deployment
+    replicas: 1 #Indicates the number of pod replicas to run
+    selector: #Defines how the Deployment finds which pods to manage.
+        matchLabels: #specifies the labels that must be present on pods for them to be managed by this Deployment.
+            app: platformservice # is the label that the Deployment uses to select the pods it should manage.
+    template: #Describes t he pod template used by the Deployment to create pods.
+        metadata: #Contains labels that are applied to the pods created by this Deployment
+            labels:
+                app: platformservice # ensures that the pods created by this Deployment have the same label, so they match the selector.
+        spec: #Specifies the pod specification.
+            containers: #Defines the container(s) to run inside the pod.
+                -   name: platformservice # sets the name of the container.
+                    image: yllshillova/platformservice:latest #specifies the Docker image to use for the container
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: platforms-clusterip-srv
+spec:
+    type: ClusterIP
+    selector:
+        app: platformservice
+    ports:
+    -   name: platformservice
+        protocol: TCP
+        port: 8080
+        targetPort: 8080

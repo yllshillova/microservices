@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1 #using the version of the Kubernetes API that deals with networking
+kind: Ingress # defining an Ingress resource, which manages external access to your services.
+metadata:
+    name: ingress-srv #naming this Ingress resource ingress-srv.
+    annotations: #extra instructions for the Ingress controller
+        kubernetes.io/ingress.class: nginx #specifying that this Ingress should be handled by the NGINX Ingress controller.
+        nginx.ingress.kubernetes.io/use-regex: 'true' #telling NGINX that i want to use regex (regular expressions) in your paths.
+spec:
+    rules: # setting up rules for traffic coming to acme.com.
+        -   host: acme.com #
+            http: 
+                paths:
+    #If someone visits acme.com/api/platforms, the traffic should be routed to a service named platforms-clusterip-srv.
+                    -   path: /api/platforms 
+                        pathType: Prefix
+                        backend: 
+                            service:
+                                name: platforms-clusterip-srv
+                                port: 
+                                    number: 8080
+    #If someone visits acme.com/api/c/platforms, the traffic should go to a different service named commands-clusterip-srv
+                    -   path: /api/c/platforms
+                        pathType: Prefix
+                        backend:
+                            service:
+                                name: commands-clusterip-srv
+                                port:
+                                    number: 8080
+                              
