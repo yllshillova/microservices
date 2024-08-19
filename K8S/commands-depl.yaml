@@ -1,32 +1,31 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: apps/v1 # Specifies the API version used for the Deployment resource.
+kind: Deployment # Specifies the type of Kubernetes resource being defined.
 metadata:
-    name:   commands-depl
+    name: commands-depl # Gives the Deployment a unique name within the namespace.
 spec:
-    replicas : 1
+    replicas: 1 # Indicates the number of pod replicas to run.
     selector:
         matchLabels:
-            app: commandservice
+            app: commandservice # Label used to select which pods the Deployment manages.
     template:
         metadata:
             labels:
-                app: commandservice
+                app: commandservice # Ensures that the pods created by this Deployment have the same label, so they match the selector.
         spec:
             containers:
-                -   name: commandservice
-                    image: yllshillova/commandservice:latest
+                - name: commandservice # Sets the name of the container.
+                  image: yllshillova/commandservice:latest # Specifies the Docker image to use for the container.
 ---
-apiVersion: v1
-kind: Service
+apiVersion: v1 # Specifies the API version used for the Service resource.
+kind: Service # Specifies the type of Kubernetes resource being defined.
 metadata:
-    name: commands-clusterip-srv
+    name: commands-clusterip-srv # Gives the Service a unique name within the namespace.
 spec:
-    type: ClusterIP
+    type: ClusterIP # The service type, making it accessible only within the cluster.
     selector:
-        app: commandservice
+        app: commandservice # Label used to select the pods that this Service should route traffic to.
     ports:
-    -   name: commandservice
-        protocol: TCP
-        port: 8080
-        targetPort: 8080
-    
+    - name: commandservice # Sets a name for this port configuration.
+      protocol: TCP # Specifies that the service uses TCP.
+      port: 8080 # The port that the Service will expose.
+      targetPort: 8080 # The port on the container that the Service should route traffic to.

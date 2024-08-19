@@ -1,13 +1,13 @@
-apiVersion: v1
-kind: Service
-metadata: 
-    name: platformnpservice-srv
+apiVersion: v1 # Specifies the API version used for the Service resource.
+kind: Service # Specifies the type of Kubernetes resource being defined.
+metadata:
+    name: platformnpservice-srv # Gives the Service a unique name within the namespace.
 spec:
-    type: NodePort
+    type: NodePort # The service type, making it accessible externally on a specific port on each node.
     selector:
-        app: platformservice
+        app: platformservice # Label used to select the pods that this Service should route traffic to.
     ports:
-        -   name: platformservice
-            protocol: TCP
-            port: 8080
-            targetPort: 8080
+    - name: platformservice # Sets a name for this port configuration.
+      protocol: TCP # Specifies that the service uses TCP.
+      port: 8080 # The port that the Service will expose within the cluster.
+      targetPort: 8080 # The port on the container that the Service should route traffic to.

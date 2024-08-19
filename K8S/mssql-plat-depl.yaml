@@ -1,0 +1,63 @@
+apiVersion: apps/v1 # Specifies the API version used for the Deployment resource.
+kind: Deployment # Specifies the type of Kubernetes resource being defined.
+metadata: 
+    name: mssql-depl # Gives the Deployment a unique name within the namespace.
+spec:
+    replicas: 1 # Indicates the number of pod replicas to run.
+    selector:
+        matchLabels:
+            app: mssql # Label used to select which pods the Deployment manages.
+    template:
+        metadata:
+            labels:
+                app: mssql # Ensures that the pods created by this Deployment have the same label, so they match the selector.
+        spec:
+            containers:
+                - name: mssql # Sets the name of the container.
+                  image: mcr.microsoft.com/mssql/server:2019-latest # Specifies the Docker image to use for SQL Server 2019.
+                  ports:
+                      - containerPort: 1433 # The port SQL Server listens on.
+                  env:
+                  - name: MSSQL_PID
+                    value: "Express" # Sets the edition of SQL Server (e.g., Express).
+                  - name: ACCEPT_EULA
+                    value: "Y" # Automatically accepts the SQL Server EULA.
+                  - name: SA_PASSWORD
+                    valueFrom:
+                        secretKeyRef:
+                            name: mssql # References a Kubernetes secret for the SA password.
+                            key: SA_PASSWORD
+                  volumeMounts:
+                  - mountPath: /var/opt/mssql/data # Mounts the storage volume to this path inside the container.
+                    name: mssqldb
+            volumes:
+            - name: mssqldb # Defines the name of the volume to use.
+              persistentVolumeClaim: 
+                  claimName: mssql-claim # Links this volume to the PVC created earlier.
+---
+apiVersion: v1 # Specifies the API version used for the Service resource.
+kind: Service # Specifies the type of Kubernetes resource being defined.
+metadata:
+    name: mssql-clusterip-srv # Gives the Service a unique name within the namespace.
+spec:
+    type: ClusterIP # The service type, making it accessible only within the cluster.
+    selector:
+        app: mssql # Label used to select the pods that this Service should route traffic to.
+    ports:
+    - name: mssql # Sets a name for this port configuration.
+      protocol: TCP # Specifies that the service uses TCP.
+      port: 1433 # The port that the Service will expose within the cluster.
+      targetPort: 1433 # The port on the container that the Service should route traffic to.
+---
+apiVersion: v1 # Specifies the API version used for the Service resource.
+kind: Service # Specifies the type of Kubernetes resource being defined.
+metadata:
+    name: mssql-loadbalancer # Gives the Service a unique name within the namespace.
+spec:
+    type: LoadBalancer # The service type, making it accessible externally via a cloud provider's load balancer.
+    selector:
+        app: mssql # Label used to select the pods that this Service should route traffic to.
+    ports:
+    - protocol: TCP # Specifies that the service uses TCP.
+      port: 1433 # The port that the Service will expose.
+      targetPort: 1433 # The port on the container that the Service should route traffic to.
