@@ -12,11 +12,23 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<AppDbContext>(opt => opt.UseInMemoryDatabase("InMem"));
 builder.Services.AddHttpClient<ICommandDataClient, HttpCommandDataClient>();
 builder.Services.AddScoped<IPlatformRepository, PlatformRepository>();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 Console.WriteLine($"--> CommandService endpoint {builder.Configuration["CommandService"]}");
+
+if (builder.Environment.IsProduction())
+{
+    Console.WriteLine("--> using SQL Server database");
+    builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlServer(builder.Configuration.GetConnectionString("PlatformsConn")));
+}
+else
+{
+    Console.WriteLine("--> using InMemory database");
+    builder.Services.AddDbContext<AppDbContext>(opt => opt.UseInMemoryDatabase("InMem"));
+}
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -32,7 +44,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-Seed.PrepPopulation(app);
+Seed.PrepPopulation(app,builder.Environment.IsProduction());
 
 
 app.Run();
