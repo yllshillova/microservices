@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: rabbitmq-depl
+spec: 
+    replicas:
+    selector:
+        matchLabels:
+            app: rabbitmq
+    template:
+        metadata:
+            labels:
+                app: rabbitmq
+        spec:
+            containers:
+                - name: rabbitmq
+                  image: rabbitmq:3-management
+                  ports:
+                    - containerPort: 15672
+                      name: rbmq-mgmt-port
+                    - containerPort: 5672
+                      name: rbmq-msg-port
+---
+apiVersion: v1 # Specifies the API version used for the Service resource.
+kind: Service # Specifies the type of Kubernetes resource being defined.
+metadata:
+    name: rabbitmq-clusterip-srv # Gives the Service a unique name within the namespace.
+spec:
+    type: ClusterIP # The service type, making it accessible only within the cluster.
+    selector:
+        app: rabbitmq # Label used to select the pods that this Service should route traffic to.
+    ports:
+    - name: rbmq-mgmt-port # Sets a name for this port configuration.
+      protocol: TCP # Specifies that the service uses TCP.
+      port: 15672 # The port that the Service will expose within the cluster.
+      targetPort: 15672 
+    - name: rbmq-msg-port # Sets a name for this port configuration.
+      protocol: TCP # Specifies that the service uses TCP.
+      port: 5672 # The port that the Service will expose within the cluster.
+      targetPort: 5672
+---
+apiVersion: v1 # Specifies the API version used for the Service resource.
+kind: Service # Specifies the type of Kubernetes resource being defined.
+metadata:
+    name: rabbitmq-loadbalancer # Gives the Service a unique name within the namespace.
+spec:
+    type: LoadBalancer # The service type, making it accessible externally via a cloud provider's load balancer.
+    selector:
+        app: rabbitmq # Label used to select the pods that this Service should route traffic to.
+    ports:
+    - name: rbmq-mgmt-port
+      protocol: TCP # Specifies that the service uses TCP.
+      port: 15672 # The port that the Service will expose.
+      targetPort: 15672
+    - name: rbmq-msg-port
+      protocol: TCP
+      port: 5672
+      targetPort: 5672
+    
